@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💐 Virtual Bouquet for My Cutieeeeee ❤️</title>
+    <style>
+        /* --- CSS RESET & BASE STYLES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Comic Sans MS', 'Cursive', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffe6f0;
+            color: #5c2c3b;
+        }
+
+        /* --- SCREEN CONTAINER --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease-in-out;
+            z-index: 1;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* --- BACKGROUND PARTICLES LAYER --- */
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* --- LOADING SCREEN --- */
+        #loadingScreen {
+            background: linear-gradient(135deg, #ffb6c1, #ffd1dc, #e6e6fa);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loader-heart {
+            font-size: 80px;
+            animation: heartPulse 1.2s infinite alternate ease-in-out;
+            filter: drop-shadow(0 0 15px rgba(255, 105, 180, 0.6));
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 22px;
+            color: #d63384;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+            max-width: 80%;
+        }
+
+        .progress-bar-container {
+            width: 250px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            margin-top: 25px;
+            overflow: hidden;
+            border: 2px solid #ff69b4;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff69b4, #ff1493);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+
+        /* --- MAIN GAME SCREEN --- */
+        #gameScreen {
+            background: #7ec850;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* HUD Overlay */
+        .hud {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.85);
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: 3px solid #ff69b4;
+            box-shadow: 0 4px 15px rgba(214, 51, 132, 0.3);
+            font-size: 20px;
+            font-weight: bold;
+            color: #d63384;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        /* On-Screen Touch Controls */
+        .touch-controls {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            width: 140px;
+            height: 140px;
+            z-index: 15;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+        }
+
+        .dbtn {
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid #ff69b4;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #d63384;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            touch-action: none;
+        }
+
+        .dbtn:active {
+            background: #ff69b4;
+            color: white;
+        }
+
+        .dbtn-up { grid-column: 2; grid-row: 1; }
+        .dbtn-left { grid-column: 1; grid-row: 2; }
+        .dbtn-right { grid-column: 3; grid-row: 2; }
+        .dbtn-down { grid-column: 2; grid-row: 3; }
+
+        @media (min-width: 1024px) {
+            .touch-controls { opacity: 0.6; }
+            .touch-controls:hover { opacity: 1; }
+        }
+
+        /* --- SURPRISE / GIFT SCREEN --- */
+        #giftScreen {
+            background: linear-gradient(135deg, #ffe6f0, #e6e6fa, #ffd1dc);
+            text-align: center;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 40px 15px 60px 15px;
+            justify-content: flex-start; /* Fix high placement */
+        }
+
+        #giftBoxContainer {
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+        }
+
+        .gift-box {
+            font-size: 110px;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+            filter: drop-shadow(0 10px 20px rgba(214, 51, 132, 0.4));
+            transition: transform 0.3s;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .gift-instruction {
+            font-size: 22px;
+            color: #d63384;
+            font-weight: bold;
+            margin-top: 15px;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Revealed Content Container */
+        .reveal-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            animation: fadeIn 1.2s forwards;
+            padding-bottom: 40px;
+        }
+
+        .media-gallery {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+            width: 100%;
+        }
+
+        .photo-card {
+            background: white;
+            padding: 12px 12px 20px 12px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: rotate(-1deg);
+            transition: transform 0.3s;
+            width: 220px;
+            max-width: 80vw;
+        }
+
+        .photo-card:hover {
+            transform: scale(1.03) rotate(0deg);
+            z-index: 5;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 220px;
+            max-height: 35vh;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #ffe6f0;
+            display: block;
+        }
+
+        .photo-card p {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff1493;
+        }
+
+        .bouquet-img-container {
+            width: 200px;
+            height: 200px;
+            max-width: 70vw;
+            max-height: 70vw;
+            background: white;
+            padding: 8px;
+            border-radius: 50%;
+            box-shadow: 0 0 25px rgba(255, 105, 180, 0.6);
+            margin: 20px 0;
+            border: 4px solid #ff69b4;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .bouquet-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        /* Love Letter Style */
+        .love-letter {
+            background: rgba(255, 255, 255, 0.92);
+            border: 3px dashed #ff69b4;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: left;
+            box-shadow: 0 10px 30px rgba(214, 51, 132, 0.2);
+            line-height: 1.6;
+            font-size: 16px;
+            color: #4a2330;
+            width: 100%;
+            position: relative;
+        }
+
+        .love-letter h2 {
+            text-align: center;
+            color: #d63384;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        #typedText {
+            white-space: pre-line;
+            min-height: 150px;
+        }
+
+        /* Music Controls */
+        .music-controls {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 20, 147, 0.4);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 20, 147, 0.6);
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Ending Section */
+        .ending-section {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .big-heart {
+            font-size: 50px;
+            color: #ff1493;
+            animation: heartPulse 1s infinite alternate;
+            text-shadow: 0 0 20px rgba(255, 20, 147, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .big-heart span {
+            font-size: 22px;
+            font-weight: bold;
+            color: #d63384;
+            margin-top: 5px;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes heartPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.18); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-25px); }
+            60% { transform: translateY(-12px); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND CANVAS FOR GLOBAL FLOATING PARTICLES -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- 1. LOADING SCREEN -->
+    <div id="loadingScreen" class="screen active">
+        <div class="loader-heart">💖</div>
+        <div class="loading-text">Preparing a special surprise for my Cutuuuu... 💖</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN GAME SCREEN -->
+    <div id="gameScreen" class="screen">
+        <div class="hud">
+            <span>💐</span>
+            <span id="scoreDisplay">Flowers Collected: 0 / 10</span>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- On-Screen Touch Controls -->
+        <div class="touch-controls">
+            <div class="dbtn dbtn-up" id="btnUp">▲</div>
+            <div class="dbtn dbtn-left" id="btnLeft">◄</div>
+            <div class="dbtn dbtn-right" id="btnRight">►</div>
+            <div class="dbtn dbtn-down" id="btnDown">▼</div>
+        </div>
+    </div>
+
+    <!-- 3. SURPRISE GIFT & LOVE LETTER SCREEN -->
+    <div id="giftScreen" class="screen">
+        <div id="giftBoxContainer">
+            <div class="gift-box" id="giftBox">🎁</div>
+            <div class="gift-instruction">Tap the gift to open your surprise! ✨</div>
+        </div>
+
+        <div class="reveal-container" id="revealContainer">
+            <div class="media-gallery">
+                <div class="photo-card">
+                    <img src="gf.png" alt="My Cutie" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'180\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23ffb6c1\'/><text x=\'50%\' y=\'55%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-size=\'50\'>👸</text></svg>'">
+                    <p>My Princess 👑</p>
+                </div>
+            </div>
+
+            <div class="bouquet-img-container">
+                <img src="bouquet.png" alt="Bouquet" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'220\' height=\'220\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23ffd1dc\'/><text x=\'50%\' y=\'55%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-size=\'55\'>💐</text></svg>'">
+            </div>
+
+            <div class="music-controls">
+                <button class="btn" id="toggleMusicBtn">🔇 Mute Music</button>
+                <button class="btn" id="replayMusicBtn">🔄 Replay Song</button>
+            </div>
+
+            <div class="love-letter">
+                <h2>💐 Bouquet for My Cutieeeeee 💐</h2>
+                <div id="typedText"></div>
+            </div>
+
+            <div class="ending-section">
+                <div class="big-heart">
+                    ❤️
+                    <span>Forever Yours ❤️</span>
+                </div>
+                <button class="btn" id="playAgainBtn" style="font-size: 18px; padding: 12px 30px;">💖 Play Again 💖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKGROUND AUDIO ELEMENT -->
+    <audio id="bgMusic" loop src="song.mp3"></audio>
+
+    <script>
+        /* --- AUDIO SYNTHESIZER (Web Audio API for pure offline sound effects) --- */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playCollect() {
+                this.init();
+                if (!this.ctx) return;
+                
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, this.ctx.currentTime); // D5
+                    osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.15); // A5
+                    
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.15);
+                } catch(e) {}
+            }
+
+            playWin() {
+                this.init();
+                if (!this.ctx) return;
+
+                try {
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    notes.forEach((freq, i) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        
+                        osc.type = 'triangle';
+                        osc.frequency.value = freq;
+                        
+                        const startTime = this.ctx.currentTime + (i * 0.1);
+                        gain.gain.setValueAtTime(0.3, startTime);
+                        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+                        
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        
+                        osc.start(startTime);
+                        osc.stop(startTime + 0.3);
+                    });
+                } catch(e) {}
+            }
+        }
+
+        const sfx = new SoundFX();
+
+        /* Unlock audio context on user interaction */
+        document.addEventListener('touchstart', () => sfx.init(), { once: true });
+        document.addEventListener('click', () => sfx.init(), { once: true });
+
+        /* --- GLOBAL AMBIENT PARTICLES (HEARTS, PETALS, SPARKLES) --- */
+        const pCanvas = document.getElementById('particleCanvas');
+        const pCtx = pCanvas.getContext('2d');
+        let pArray = [];
+
+        function resizeParticleCanvas() {
+            pCanvas.width = window.innerWidth;
+            pCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeParticleCanvas);
+        resizeParticleCanvas();
+
+        class AmbientParticle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * pCanvas.width;
+                this.y = pCanvas.height + 20;
+                this.size = Math.random() * 15 + 8;
+                this.speedY = Math.random() * 1.5 + 0.5;
+                this.speedX = Math.sin(Math.random() * Math.PI) * 1;
+                this.type = Math.random() > 0.4 ? 'heart' : (Math.random() > 0.5 ? 'petal' : 'sparkle');
+                this.opacity = Math.random() * 0.7 + 0.3;
+                this.rotation = Math.random() * 360;
+                this.rotSpeed = (Math.random() - 0.5) * 2;
+                this.color = ['#ff69b4', '#ff1493', '#ffd1dc', '#e6e6fa', '#fff'][Math.floor(Math.random() * 5)];
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.x += Math.sin(this.y / 30) + this.speedX;
+                this.rotation += this.rotSpeed;
+
+                if (this.y < -20) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                pCtx.save();
+                pCtx.translate(this.x, this.y);
+                pCtx.rotate((this.rotation * Math.PI) / 180);
+                pCtx.globalAlpha = this.opacity;
+                pCtx.fillStyle = this.color;
+
+                if (this.type === 'heart') {
+                    pCtx.font = `${this.size}px serif`;
+                    pCtx.fillText('❤️', 0, 0);
+                } else if (this.type === 'petal') {
+                    pCtx.beginPath();
+                    pCtx.ellipse(0, 0, this.size / 2, this.size / 4, 0, 0, Math.PI * 2);
+                    pCtx.fill();
+                } else {
+                    pCtx.font = `${this.size}px serif`;
+                    pCtx.fillText('✨', 0, 0);
+                }
+
+                pCtx.restore();
+            }
+        }
+
+        for (let i = 0; i < 35; i++) {
+            const p = new AmbientParticle();
+            p.y = Math.random() * pCanvas.height;
+            pArray.push(p);
+        }
+
+        function animateAmbientParticles() {
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+            pArray.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateAmbientParticles);
+        }
+        animateAmbientParticles();
+
+        /* --- LOADING SCREEN LOGIC --- */
+        let progress = 0;
+        const progressBar = document.getElementById('progressBar');
+        const loadingInterval = setInterval(() => {
+            progress += Math.random() * 15 + 5;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(loadingInterval);
+                setTimeout(() => {
+                    switchScreen('gameScreen');
+                    initGame();
+                }, 500);
+            }
+            progressBar.style.width = progress + '%';
+        }, 120);
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        /* --- MAIN GAME ENGINE (2D CANVAS) --- */
+        const gameCanvas = document.getElementById('gameCanvas');
+        const gCtx = gameCanvas.getContext('2d');
+
+        let gameWidth, gameHeight;
+        let player, flowers, butterflies, clouds, trees, gameFxParticles;
+        let collectedCount = 0;
+        const TOTAL_FLOWERS = 10;
+        let isGameWon = false;
+        let animationFrameId = null;
+        let flyIntervalId = null;
+
+        // Keys state
+        const keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+
+        // Event Listeners for Keyboard
+        window.addEventListener('keydown', e => {
+            if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
+            if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
+            if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
+            if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
+        });
+
+        window.addEventListener('keyup', e => {
+            if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
+            if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
+            if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
+            if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
+        });
+
+        // Touch Controls Mapping
+        function setupTouchBtn(btnId, keyName) {
+            const btn = document.getElementById(btnId);
+            const start = (e) => { e.preventDefault(); keys[keyName] = true; };
+            const end = (e) => { e.preventDefault(); keys[keyName] = false; };
+            btn.addEventListener('touchstart', start);
+            btn.addEventListener('touchend', end);
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('mouseup', end);
+            btn.addEventListener('mouseleave', end);
+        }
+
+        setupTouchBtn('btnUp', 'up');
+        setupTouchBtn('btnDown', 'down');
+        setupTouchBtn('btnLeft', 'left');
+        setupTouchBtn('btnRight', 'right');
+
+        function resizeGameCanvas() {
+            gameWidth = window.innerWidth;
+            gameHeight = window.innerHeight;
+            gameCanvas.width = gameWidth;
+            gameCanvas.height = gameHeight;
+        }
+
+        function initGame() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (flyIntervalId) clearInterval(flyIntervalId);
+
+            resizeGameCanvas();
+            window.addEventListener('resize', resizeGameCanvas);
+
+            collectedCount = 0;
+            isGameWon = false;
+            document.getElementById('scoreDisplay').innerText = `Flowers Collected: 0 / ${TOTAL_FLOWERS}`;
+
+            // Create Player
+            player = {
+                x: gameWidth / 2,
+                y: gameHeight / 2,
+                size: 30,
+                speed: 4,
+                facing: 'down',
+                animFrame: 0,
+                animTimer: 0
+            };
+
+            // Generate Flowers
+            flowers = [];
+            const margin = 60;
+            for (let i = 0; i < TOTAL_FLOWERS; i++) {
+                flowers.push({
+                    x: margin + Math.random() * (gameWidth - margin * 2),
+                    y: margin + 80 + Math.random() * (gameHeight - margin * 2 - 80),
+                    size: 18,
+                    collected: false,
+                    type: i % 2 === 0 ? 'rose' : 'tulip',
+                    flyToCenter: false,
+                    flyX: 0,
+                    flyY: 0
+                });
+            }
+
+            // Generate Decor
+            clouds = Array.from({ length: 5 }, () => ({
+                x: Math.random() * gameWidth,
+                y: Math.random() * (gameHeight * 0.4),
+                speed: 0.2 + Math.random() * 0.3,
+                scale: 0.6 + Math.random() * 0.8
+            }));
+
+            trees = Array.from({ length: 6 }, () => ({
+                x: Math.random() * (gameWidth - 80) + 40,
+                y: Math.random() * (gameHeight - 150) + 100,
+                scale: 0.8 + Math.random() * 0.5
+            }));
+
+            butterflies = Array.from({ length: 6 }, () => ({
+                x: Math.random() * gameWidth,
+                y: Math.random() * gameHeight,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                color: Math.random() > 0.5 ? '#ffb6c1' : '#e6e6fa'
+            }));
+
+            gameFxParticles = [];
+            gameLoop();
+        }
+
+        function addBurstFx(x, y) {
+            for (let i = 0; i < 15; i++) {
+                gameFxParticles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6 - 2,
+                    life: 1,
+                    decay: 0.02 + Math.random() * 0.02,
+                    type: Math.random() > 0.5 ? '✨' : '💖',
+                    size: Math.random() * 10 + 10
+                });
+            }
+        }
+
+        /* --- GAME RENDERING & LOGIC --- */
+        function updateGame() {
+            if (isGameWon) return;
+
+            // Movement
+            let dx = 0, dy = 0;
+            if (keys.up) dy -= 1;
+            if (keys.down) dy += 1;
+            if (keys.left) dx -= 1;
+            if (keys.right) dx += 1;
+
+            if (dx !== 0 && dy !== 0) {
+                dx *= 0.7071;
+                dy *= 0.7071;
+            }
+
+            player.x += dx * player.speed;
+            player.y += dy * player.speed;
+
+            player.x = Math.max(25, Math.min(gameWidth - 25, player.x));
+            player.y = Math.max(60, Math.min(gameHeight - 25, player.y));
+
+            if (dx !== 0 || dy !== 0) {
+                player.animTimer++;
+                if (player.animTimer % 10 === 0) {
+                    player.animFrame = (player.animFrame + 1) % 2;
+                }
+            }
+
+            // Flower Collection
+            flowers.forEach(flower => {
+                if (!flower.collected) {
+                    const dist = Math.hypot(player.x - flower.x, player.y - flower.y);
+                    if (dist < player.size + flower.size) {
+                        flower.collected = true;
+                        collectedCount++;
+                        sfx.playCollect();
+                        addBurstFx(flower.x, flower.y);
+                        document.getElementById('scoreDisplay').innerText = `Flowers Collected: ${collectedCount} / ${TOTAL_FLOWERS}`;
+
+                        if (collectedCount >= TOTAL_FLOWERS) {
+                            triggerBouquetSequence();
+                        }
+                    }
+                }
+            });
+
+            // Update decor
+            butterflies.forEach(b => {
+                b.x += b.vx;
+                b.y += b.vy;
+                if (b.x < 0 || b.x > gameWidth) b.vx *= -1;
+                if (b.y < 0 || b.y > gameHeight) b.vy *= -1;
+            });
+
+            clouds.forEach(c => {
+                c.x += c.speed;
+                if (c.x > gameWidth + 100) c.x = -100;
+            });
+
+            for (let i = gameFxParticles.length - 1; i >= 0; i--) {
+                const p = gameFxParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                if (p.life <= 0) gameFxParticles.splice(i, 1);
+            }
+        }
+
+        function drawGame() {
+            gCtx.clearRect(0, 0, gameWidth, gameHeight);
+
+            // 1. Grass background
+            gCtx.fillStyle = '#7ec850';
+            gCtx.fillRect(0, 0, gameWidth, gameHeight);
+
+            // 2. Clouds
+            clouds.forEach(c => {
+                gCtx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                gCtx.beginPath();
+                gCtx.arc(c.x, c.y, 25 * c.scale, 0, Math.PI * 2);
+                gCtx.arc(c.x + 20 * c.scale, c.y - 10 * c.scale, 20 * c.scale, 0, Math.PI * 2);
+                gCtx.arc(c.x + 40 * c.scale, c.y, 25 * c.scale, 0, Math.PI * 2);
+                gCtx.fill();
+            });
+
+            // 3. Trees
+            trees.forEach(t => {
+                gCtx.fillStyle = '#8B4513';
+                gCtx.fillRect(t.x - 8 * t.scale, t.y, 16 * t.scale, 25 * t.scale);
+                gCtx.fillStyle = '#2e8b57';
+                gCtx.beginPath();
+                gCtx.arc(t.x, t.y - 10 * t.scale, 25 * t.scale, 0, Math.PI * 2);
+                gCtx.fill();
+            });
+
+            // 4. Flowers
+            flowers.forEach(f => {
+                if (!f.collected || f.flyToCenter) {
+                    const fx = f.flyToCenter ? f.flyX : f.x;
+                    const fy = f.flyToCenter ? f.flyY : f.y;
+
+                    gCtx.save();
+                    gCtx.translate(fx, fy);
+                    if (f.type === 'rose') {
+                        gCtx.strokeStyle = 'green';
+                        gCtx.lineWidth = 3;
+                        gCtx.beginPath();
+                        gCtx.moveTo(0, 0);
+                        gCtx.lineTo(0, 12);
+                        gCtx.stroke();
+                        gCtx.fillStyle = '#ff1493';
+                        gCtx.beginPath();
+                        gCtx.arc(0, 0, 10, 0, Math.PI * 2);
+                        gCtx.fill();
+                        gCtx.fillStyle = '#ff69b4';
+                        gCtx.beginPath();
+                        gCtx.arc(-2, -2, 5, 0, Math.PI * 2);
+                        gCtx.fill();
+                    } else {
+                        gCtx.strokeStyle = 'green';
+                        gCtx.lineWidth = 3;
+                        gCtx.beginPath();
+                        gCtx.moveTo(0, 0);
+                        gCtx.lineTo(0, 12);
+                        gCtx.stroke();
+                        gCtx.fillStyle = '#ff4500';
+                        gCtx.beginPath();
+                        gCtx.arc(0, 2, 8, 0, Math.PI);
+                        gCtx.lineTo(-8, -6);
+                        gCtx.lineTo(0, -2);
+                        gCtx.lineTo(8, -6);
+                        gCtx.closePath();
+                        gCtx.fill();
+                    }
+                    gCtx.restore();
+                }
+            });
+
+            // 5. Butterflies
+            butterflies.forEach(b => {
+                gCtx.fillStyle = b.color;
+                gCtx.beginPath();
+                gCtx.ellipse(b.x - 4, b.y, 5, 3, Math.PI / 4, 0, Math.PI * 2);
+                gCtx.ellipse(b.x + 4, b.y, 5, 3, -Math.PI / 4, 0, Math.PI * 2);
+                gCtx.fill();
+            });
+
+            // 6. Player
+            gCtx.save();
+            gCtx.translate(player.x, player.y);
+
+            gCtx.fillStyle = 'rgba(0,0,0,0.2)';
+            gCtx.beginPath();
+            gCtx.ellipse(0, 18, 15, 6, 0, 0, Math.PI * 2);
+            gCtx.fill();
+
+            gCtx.fillStyle = '#ff69b4';
+            gCtx.beginPath();
+            gCtx.moveTo(0, -5);
+            gCtx.lineTo(-14, 15);
+            gCtx.lineTo(14, 15);
+            gCtx.closePath();
+            gCtx.fill();
+
+            gCtx.fillStyle = '#ffe0bd';
+            gCtx.beginPath();
+            gCtx.arc(0, -15, 12, 0, Math.PI * 2);
+            gCtx.fill();
+
+            gCtx.fillStyle = '#6d4c41';
+            gCtx.beginPath();
+            gCtx.arc(0, -18, 14, Math.PI, Math.PI * 2);
+            gCtx.fill();
+            gCtx.fillRect(-14, -18, 6, 20);
+            gCtx.fillRect(8, -18, 6, 20);
+
+            gCtx.fillStyle = '#ff1493';
+            gCtx.beginPath();
+            gCtx.arc(-8, -24, 4, 0, Math.PI * 2);
+            gCtx.arc(-2, -24, 4, 0, Math.PI * 2);
+            gCtx.fill();
+
+            gCtx.fillStyle = '#000';
+            gCtx.beginPath();
+            gCtx.arc(-4, -15, 1.5, 0, Math.PI * 2);
+            gCtx.arc(4, -15, 1.5, 0, Math.PI * 2);
+            gCtx.fill();
+
+            gCtx.fillStyle = '#ffb6c1';
+            gCtx.beginPath();
+            gCtx.arc(-6, -12, 2.5, 0, Math.PI * 2);
+            gCtx.arc(6, -12, 2.5, 0, Math.PI * 2);
+            gCtx.fill();
+
+            gCtx.fillStyle = '#ff1493';
+            const footOffset = player.animFrame * 3;
+            gCtx.fillRect(-7, 15 - footOffset, 5, 4);
+            gCtx.fillRect(2, 15 + footOffset, 5, 4);
+
+            gCtx.restore();
+
+            // 7. FX Particles
+            gameFxParticles.forEach(p => {
+                gCtx.save();
+                gCtx.globalAlpha = p.life;
+                gCtx.font = `${p.size}px serif`;
+                gCtx.fillText(p.type, p.x, p.y);
+                gCtx.restore();
+            });
+        }
+
+        function gameLoop() {
+            updateGame();
+            drawGame();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        /* --- BOUQUET MAGICAL ANIMATION SEQUENCE --- */
+        function triggerBouquetSequence() {
+            isGameWon = true;
+            sfx.playWin();
+
+            const centerX = gameWidth / 2;
+            const centerY = gameHeight / 2;
+
+            flowers.forEach(f => {
+                f.flyToCenter = true;
+                f.flyX = f.x;
+                f.flyY = f.y;
+            });
+
+            let animProgress = 0;
+            flyIntervalId = setInterval(() => {
+                animProgress += 0.02;
+
+                flowers.forEach(f => {
+                    f.flyX += (centerX - f.flyX) * 0.08;
+                    f.flyY += (centerY - f.flyY) * 0.08;
+                });
+
+                if (Math.random() > 0.3) {
+                    addBurstFx(centerX + (Math.random() - 0.5) * 100, centerY + (Math.random() - 0.5) * 100);
+                }
+
+                if (animProgress >= 1) {
+                    clearInterval(flyIntervalId);
+                    for (let i = 0; i < 50; i++) {
+                        addBurstFx(centerX, centerY);
+                    }
+
+                    setTimeout(() => {
+                        switchScreen('giftScreen');
+                    }, 1200);
+                }
+            }, 30);
+        }
+
+        /* --- SURPRISE GIFT & MUSIC & LETTER LOGIC --- */
+        const giftBox = document.getElementById('giftBox');
+        const giftBoxContainer = document.getElementById('giftBoxContainer');
+        const revealContainer = document.getElementById('revealContainer');
+        const giftScreen = document.getElementById('giftScreen');
+        const bgMusic = document.getElementById('bgMusic');
+        const toggleMusicBtn = document.getElementById('toggleMusicBtn');
+        const replayMusicBtn = document.getElementById('replayMusicBtn');
+
+        let isMuted = false;
+        let typeTimeoutId = null;
+
+        giftBox.addEventListener('click', () => {
+            sfx.playWin();
+            giftBoxContainer.style.display = 'none';
+            revealContainer.style.display = 'flex';
+
+            // Reset scroll position to top when revealed
+            giftScreen.scrollTop = 0;
+
+            // Safe audio playback trigger
+            bgMusic.play().catch(() => {
+                console.log("Audio waiting for user gesture.");
+            });
+
+            typeWriter();
+        });
+
+        toggleMusicBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            bgMusic.muted = isMuted;
+            toggleMusicBtn.innerText = isMuted ? "🔊 Unmute Music" : "🔇 Mute Music";
+        });
+
+        replayMusicBtn.addEventListener('click', () => {
+            bgMusic.currentTime = 0;
+            bgMusic.play().catch(() => {});
+        });
+
+        const letterText = `Cutuuuu ❤️,
+
+I loveee youu soo soo muchhh... 🥹💖
+
+My heart belongs to you, forever and always. ❤️
+
+Thank you forrr makinggg my lifee beautiful and filling every day with happiness. 🌸✨
+
+I loveeer youuuu sooo muchhh, more than words can ever say. 🫶😘
+
+Happy Girlfriend's Dayyyy, Cutuuuuuu!! 💐❤️🥰😘`;
+
+        let letterIndex = 0;
+        function typeWriter() {
+            if (letterIndex < letterText.length) {
+                document.getElementById('typedText').innerHTML += letterText.charAt(letterIndex);
+                letterIndex++;
+                typeTimeoutId = setTimeout(typeWriter, 40);
+            }
+        }
+
+        document.getElementById('playAgainBtn').addEventListener('click', () => {
+            if (typeTimeoutId) clearTimeout(typeTimeoutId);
+            letterIndex = 0;
+            document.getElementById('typedText').innerHTML = '';
+            revealContainer.style.display = 'none';
+            giftBoxContainer.style.display = 'flex';
+
+            switchScreen('gameScreen');
+            initGame();
+        });
+    </script>
+</body>
+</html>
